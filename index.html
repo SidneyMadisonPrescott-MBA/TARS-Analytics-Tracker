@@ -5,125 +5,97 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZionGPT KPI Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #07080d;
-  --bg2: #0d0f16;
-  --panel: rgba(17,19,28,0.85);
-  --panel-solid: #11131c;
-  --border: rgba(255,255,255,0.06);
-  --border-hover: rgba(255,255,255,0.12);
-  --fg: #eaedf3;
-  --fg2: #9ba1b4;
-  --fg3: #5c6178;
-  --ok: #22d3a7;
-  --ok-bg: rgba(34,211,167,0.1);
-  --warn: #f5a623;
-  --warn-bg: rgba(245,166,35,0.1);
-  --bad: #ef5b5b;
-  --bad-bg: rgba(239,91,91,0.1);
-  --accent: #7c6aef;
-  --accent2: #5b8def;
-  --accent-bg: rgba(124,106,239,0.08);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.25);
-  --c0: #7c6aef;
-  --c1: #22d3a7;
-  --c2: #ef5b5b;
-  --c3: #f5a623;
-  --c4: #e06abe;
-  --c5: #3ba4f5;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: var(--bg); color: var(--fg); font-family: 'Inter', -apple-system, sans-serif; line-height: 1.5; min-height: 100vh; }
-body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 500px; background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(124,106,239,0.12) 0%, transparent 70%); pointer-events: none; z-index: 0; }
-.wrap { max-width: 1280px; margin: 0 auto; padding: 32px 24px; position: relative; z-index: 1; }
+:root{--bg:#07080d;--bg2:#0d0f16;--panel:rgba(17,19,28,0.85);--panel-s:#11131c;--bdr:rgba(255,255,255,0.06);--bdr2:rgba(255,255,255,0.12);--fg:#eaedf3;--fg2:#9ba1b4;--fg3:#5c6178;--ok:#22d3a7;--ok-bg:rgba(34,211,167,0.1);--warn:#f5a623;--warn-bg:rgba(245,166,35,0.1);--bad:#ef5b5b;--bad-bg:rgba(239,91,91,0.1);--accent:#7c6aef;--accent2:#5b8def;--r:12px;--rs:8px;--sh:0 1px 3px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.25);--c0:#7c6aef;--c1:#22d3a7;--c2:#ef5b5b;--c3:#f5a623;--c4:#e06abe;--c5:#3ba4f5}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',-apple-system,sans-serif;line-height:1.5;min-height:100vh}
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:500px;background:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(124,106,239,0.12)0%,transparent 70%);pointer-events:none;z-index:0}
+.wrap{max-width:1320px;margin:0 auto;padding:32px 24px;position:relative;z-index:1}
+.header h1{font-size:32px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--fg),var(--fg2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .sub{color:var(--fg3);font-size:13px;font-weight:600;margin-top:4px;letter-spacing:0.8px;text-transform:uppercase}
+.banner{background:linear-gradient(135deg,rgba(124,106,239,0.08),rgba(91,141,239,0.06));border:1px solid var(--bdr);border-radius:var(--r);padding:14px 20px;margin:20px 0 24px;font-size:14px;color:var(--fg2);line-height:1.6;backdrop-filter:blur(12px)}
+.tabs{display:flex;gap:2px;background:var(--panel-s);border-radius:10px;padding:3px;margin-bottom:24px;border:1px solid var(--bdr);width:fit-content;flex-wrap:wrap}
+.tab{padding:8px 16px;font-size:12px;font-weight:600;color:var(--fg3);cursor:pointer;border-radius:8px;transition:all .25s;user-select:none}
+.tab:hover{color:var(--fg2)}.tab.active{color:var(--fg);background:rgba(124,106,239,0.15);box-shadow:0 1px 4px rgba(124,106,239,0.2)}
+.tc{display:none;animation:fi .3s ease}.tc.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--panel);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;margin-bottom:16px;backdrop-filter:blur(12px)}
+.card-label{font-size:11px;color:var(--fg3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:14px}
+.mono{font-family:'JetBrains Mono',monospace}
 
-/* Header */
-.header { margin-bottom: 32px; }
-.header h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(135deg, var(--fg) 0%, var(--fg2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.header .sub { color: var(--fg3); font-size: 14px; font-weight: 500; margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+/* SCOREBOARD */
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:24px}
+.score-card{background:var(--panel);border:1px solid var(--bdr);border-radius:var(--r);padding:18px;backdrop-filter:blur(12px);position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.score-card:hover{border-color:var(--bdr2);transform:translateY(-1px)}
+.score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.score-card.green::before{background:var(--ok)}.score-card.yellow::before{background:var(--warn)}.score-card.red::before{background:var(--bad)}.score-card.gray::before{background:var(--fg3)}
+.sc-label{font-size:11px;color:var(--fg3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:6px}
+.sc-row{display:flex;align-items:baseline;gap:10px}
+.sc-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;letter-spacing:-1px}
+.sc-target{font-size:11px;color:var(--fg3);padding:2px 8px;border:1px solid var(--bdr);border-radius:20px}
+.sc-gap{font-size:12px;font-weight:600;margin-top:6px;display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px}
+.sc-trend{font-size:11px;color:var(--fg3);margin-top:4px}
+.g-ok{color:var(--ok);background:var(--ok-bg)}.g-warn{color:var(--warn);background:var(--warn-bg)}.g-bad{color:var(--bad);background:var(--bad-bg)}
 
-/* Takeaway banner */
-.banner { background: linear-gradient(135deg, rgba(124,106,239,0.08) 0%, rgba(91,141,239,0.06) 100%); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 28px; font-size: 14px; color: var(--fg2); line-height: 1.6; backdrop-filter: blur(12px); }
+/* WATERFALL */
+.wf-step{display:flex;align-items:center;margin-bottom:6px;gap:12px}
+.wf-label{width:160px;text-align:right;font-size:12px;color:var(--fg2);font-weight:500;flex-shrink:0}
+.wf-bar-wrap{flex:1;position:relative}
+.wf-bar{height:40px;border-radius:8px;display:flex;align-items:center;padding:0 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#fff;justify-content:space-between;transition:width .6s cubic-bezier(.22,1,.36,1);min-width:60px}
+.wf-conv{font-size:11px;font-weight:500;opacity:.8}
+.wf-bottleneck{margin-top:12px;padding:10px 16px;border-radius:var(--rs);background:var(--bad-bg);border:1px solid rgba(239,91,91,0.15);font-size:13px;color:var(--bad);display:flex;align-items:center;gap:8px}
 
-/* Tabs */
-.tabs { display: flex; gap: 2px; background: var(--panel-solid); border-radius: 10px; padding: 3px; margin-bottom: 28px; border: 1px solid var(--border); width: fit-content; }
-.tab { padding: 8px 18px; font-size: 13px; font-weight: 600; color: var(--fg3); cursor: pointer; border-radius: 8px; transition: all 0.25s ease; user-select: none; }
-.tab:hover { color: var(--fg2); }
-.tab.active { color: var(--fg); background: rgba(124,106,239,0.15); box-shadow: 0 1px 4px rgba(124,106,239,0.2); }
-.tab-content { display: none; animation: fadeIn 0.3s ease; }
-.tab-content.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* EVALUATOR */
+.eval-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:16px}
+.eval-card{background:var(--panel);border:1px solid var(--bdr);border-radius:var(--r);padding:18px;position:relative;overflow:hidden}
+.eval-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.eval-card.active::before{background:var(--ok)}.eval-card.draft::before{background:var(--warn)}.eval-card.planned::before{background:var(--fg3)}
+.eval-name{font-size:14px;font-weight:600;margin-bottom:4px}
+.eval-status{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.eval-stat{display:flex;justify-content:space-between;font-size:12px;color:var(--fg2);padding:4px 0;border-bottom:1px solid var(--bdr)}
+.eval-stat:last-child{border-bottom:none}
+.eval-stat b{color:var(--fg);font-family:'JetBrains Mono',monospace}
 
-/* KPI Grid */
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 28px; }
-.kpi { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; backdrop-filter: blur(12px); transition: border-color 0.2s, transform 0.2s; }
-.kpi:hover { border-color: var(--border-hover); transform: translateY(-1px); }
-.kpi-label { font-size: 11px; color: var(--fg3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 8px; }
-.kpi-val { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 500; letter-spacing: -1px; }
-.kpi-change { font-size: 12px; font-weight: 600; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; }
-.up { color: var(--ok); background: var(--ok-bg); }
-.down { color: var(--bad); background: var(--bad-bg); }
-.flat { color: var(--fg3); }
-.kpi-target { font-size: 11px; color: var(--fg3); margin-top: 6px; }
-.kpi-accent .kpi-val { color: var(--accent); }
+/* TOPICS */
+.topic-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.topic-label{font-size:12px;color:var(--fg2);width:180px;text-align:right;flex-shrink:0;font-weight:500}
+.topic-track{flex:1;height:30px;background:rgba(255,255,255,.03);border-radius:6px;overflow:hidden;position:relative}
+.topic-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600;color:#fff;transition:width .6s cubic-bezier(.22,1,.36,1);justify-content:space-between;min-width:50px}
+.topic-pct{font-size:10px;opacity:.7}
+.topic-shift{font-size:11px;width:60px;text-align:right;flex-shrink:0;font-weight:600}
 
-/* Chart cards */
-.section-title { font-size: 16px; font-weight: 700; margin: 28px 0 14px; color: var(--fg2); letter-spacing: -0.2px; }
-.chart-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 18px; backdrop-filter: blur(12px); }
-.chart-label { font-size: 12px; color: var(--fg3); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
-.chart-area { position: relative; min-height: 280px; }
-svg text { font-family: 'Inter', sans-serif; }
-.tooltip { position: absolute; pointer-events: none; background: var(--panel-solid); border: 1px solid var(--border-hover); border-radius: 10px; padding: 10px 14px; font-size: 12px; box-shadow: var(--shadow); z-index: 10; display: none; line-height: 1.6; backdrop-filter: blur(16px); }
-.legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--fg2); font-weight: 500; }
-.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+/* CHART */
+.chart-area{position:relative;min-height:280px}
+.tooltip{position:absolute;pointer-events:none;background:var(--panel-s);border:1px solid var(--bdr2);border-radius:10px;padding:10px 14px;font-size:12px;box-shadow:var(--sh);z-index:10;display:none;line-height:1.6}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg2);font-weight:500}
+.legend-dot{width:10px;height:10px;border-radius:3px}
 
-/* Funnel */
-.funnel-step { display: flex; align-items: center; margin-bottom: 10px; }
-.funnel-label { width: 140px; text-align: right; padding-right: 16px; font-size: 12px; color: var(--fg2); font-weight: 500; flex-shrink: 0; }
-.funnel-bar-wrap { flex: 1; display: flex; justify-content: center; }
-.funnel-bar { height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500; color: #fff; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); position: relative; }
-.funnel-pct { position: absolute; right: -50px; font-size: 11px; color: var(--fg3); font-family: 'Inter', sans-serif; width: 44px; }
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--bdr)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-weight:600;padding:10px 12px;background:var(--panel-s);font-size:10px;color:var(--fg3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--bdr);position:sticky;top:0}
+td{padding:10px 12px;border-bottom:1px solid var(--bdr);font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace;font-size:11px}
+tr:last-child td{border-bottom:none}tr:hover td{background:rgba(124,106,239,.04)}
+.notes-cell{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Inter',sans-serif;color:var(--fg2)}
 
-/* Table */
-.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { text-align: left; font-weight: 600; padding: 12px 14px; background: var(--panel-solid); font-size: 11px; color: var(--fg3); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
-td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: rgba(124,106,239,0.04); }
-.notes-cell { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Inter', sans-serif; color: var(--fg2); }
+/* NOTES */
+.notes-area{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px;font-size:13px;color:var(--fg);font-family:'Inter',sans-serif;width:100%;min-height:80px;resize:vertical}
+.notes-area:focus{outline:none;border-color:var(--accent)}
 
-/* Topics */
-.topic-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.topic-label { font-size: 12px; color: var(--fg2); width: 190px; text-align: right; flex-shrink: 0; font-weight: 500; }
-.topic-track { flex: 1; height: 32px; background: rgba(255,255,255,0.03); border-radius: 6px; overflow: hidden; position: relative; }
-.topic-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding: 0 10px; font-size: 12px; font-weight: 600; color: #fff; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); justify-content: space-between; min-width: 50px; }
-.topic-pct { font-size: 10px; opacity: 0.7; font-weight: 500; }
-
-/* Form */
-.form-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; backdrop-filter: blur(12px); }
-.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px; }
-.field label { display: block; font-size: 11px; color: var(--fg3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
-.field input, .field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg2); color: var(--fg); font-size: 14px; font-family: 'JetBrains Mono', monospace; transition: border-color 0.2s; }
-.field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,106,239,0.15); }
-.field textarea { min-height: 70px; resize: vertical; font-family: 'Inter', sans-serif; }
-.btn-row { margin-top: 20px; display: flex; align-items: center; gap: 14px; }
-.btn { padding: 10px 24px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 600; transition: all 0.2s; }
-.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 2px 8px rgba(124,106,239,0.3); }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,106,239,0.4); }
-.save-msg { font-size: 13px; color: var(--ok); font-weight: 500; }
-
-/* Responsive */
-@media (max-width: 600px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .tabs { overflow-x: auto; width: 100%; }
-  .funnel-label, .topic-label { width: 100px; font-size: 11px; }
-}
+/* FORM */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.field label{display:block;font-size:10px;color:var(--fg3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:4px}
+.field input,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--bdr);border-radius:var(--rs);background:var(--bg2);color:var(--fg);font-size:13px;font-family:'JetBrains Mono',monospace;transition:border-color .2s}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,239,.15)}
+.field textarea{min-height:60px;resize:vertical;font-family:'Inter',sans-serif}
+.btn{padding:10px 24px;border:none;border-radius:var(--rs);cursor:pointer;font-size:14px;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 2px 8px rgba(124,106,239,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(124,106,239,.4)}
+.save-msg{font-size:13px;color:var(--ok);font-weight:500}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.two-col{grid-template-columns:1fr}.score-grid{grid-template-columns:repeat(2,1fr)}.topic-label,.wf-label{width:100px;font-size:11px}}
 </style>
 </head>
 <body>
@@ -133,60 +105,71 @@ tr:hover td { background: rgba(124,106,239,0.04); }
     <div class="sub">Zion Church AI Agent Weekly Intelligence Performance Brief</div>
   </div>
   <div class="banner" id="takeaway"></div>
-
   <div class="tabs">
-    <div class="tab active" data-tab="overview">Overview</div>
+    <div class="tab active" data-tab="goals">Goal Status</div>
+    <div class="tab" data-tab="funnel">Funnel</div>
     <div class="tab" data-tab="trends">Trends</div>
     <div class="tab" data-tab="topics">Topics</div>
+    <div class="tab" data-tab="evals">Evaluators</div>
     <div class="tab" data-tab="data">All Data</div>
     <div class="tab" data-tab="add">Add Week</div>
   </div>
 
-  <div class="tab-content active" id="tab-overview">
-    <div class="kpi-grid" id="kpis"></div>
-    <div class="chart-card">
-      <div class="chart-label">Conversations &amp; Outcome Rate</div>
-      <div class="chart-area" id="chart-main"></div>
-      <div class="legend" id="legend-main"></div>
+  <!-- GOAL STATUS -->
+  <div class="tc active" id="tab-goals">
+    <div class="score-grid" id="scoreboard"></div>
+    <div class="two-col">
+      <div class="card"><div class="card-label">Conversations &amp; Outcome Rate</div><div class="chart-area" id="ch-main"></div><div class="legend" id="lg-main"></div></div>
+      <div class="card"><div class="card-label">Intent Clicks by Week</div><div class="chart-area" id="ch-intents"></div><div class="legend" id="lg-intents"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Weekly Change Log</div>
+      <p style="font-size:12px;color:var(--fg3);margin-bottom:8px;">What changed in the bot this week. Connects your actions to metric changes.</p>
+      <div id="changelog"></div>
     </div>
   </div>
 
-  <div class="tab-content" id="tab-trends">
-    <div class="chart-card">
-      <div class="chart-label">Intent Clicks by Week</div>
-      <div class="chart-area" id="chart-intents"></div>
-      <div class="legend" id="legend-intents"></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-label">Funnel: Visitors to Outcomes</div>
-      <div id="chart-funnel" style="padding: 10px 0;"></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-label">Rate Tracking</div>
-      <div class="chart-area" id="chart-rates"></div>
-      <div class="legend" id="legend-rates"></div>
+  <!-- FUNNEL -->
+  <div class="tc" id="tab-funnel">
+    <div class="card"><div class="card-label">Conversion Waterfall (Latest Week)</div><div id="waterfall"></div></div>
+    <div class="two-col">
+      <div class="card"><div class="card-label">Bot Question Completion Rates</div><div id="bot-questions"></div></div>
+      <div class="card"><div class="card-label">Engagement Quality Score</div><div id="eq-score"></div></div>
     </div>
   </div>
 
-  <div class="tab-content" id="tab-topics">
-    <div class="chart-card">
-      <div class="chart-label">Conversation Topics (Latest Week)</div>
-      <div id="chart-topics" style="padding: 8px 0;"></div>
-    </div>
+  <!-- TRENDS -->
+  <div class="tc" id="tab-trends">
+    <div class="card"><div class="card-label">Rate Tracking (Outcome Rate &amp; Widget Open Rate)</div><div class="chart-area" id="ch-rates"></div><div class="legend" id="lg-rates"></div></div>
+    <div class="card"><div class="card-label">Engagement Quality Score Over Time</div><div class="chart-area" id="ch-eq"></div></div>
   </div>
 
-  <div class="tab-content" id="tab-data">
+  <!-- TOPICS -->
+  <div class="tc" id="tab-topics">
+    <div class="card"><div class="card-label">Topic Share (Latest Week vs Previous)</div><div id="topic-bars"></div></div>
+  </div>
+
+  <!-- EVALUATORS -->
+  <div class="tc" id="tab-evals">
+    <div class="eval-grid" id="eval-cards"></div>
+    <div class="card"><div class="card-label">Evaluator Notes</div><p style="font-size:13px;color:var(--fg2);">Enter evaluator pass/fail data each week from the Tars Monitoring tab. As more evaluators are activated, add them in the Add Week form.</p></div>
+  </div>
+
+  <!-- DATA -->
+  <div class="tc" id="tab-data">
     <div class="table-wrap"><table id="data-table"></table></div>
   </div>
 
-  <div class="tab-content" id="tab-add">
-    <div class="form-card">
-      <h3 style="margin-bottom:20px; font-size:16px; font-weight:700;">Enter weekly numbers from the Tars email report</h3>
+  <!-- ADD WEEK -->
+  <div class="tc" id="tab-add">
+    <div class="card">
+      <h3 style="margin-bottom:16px;font-size:15px;font-weight:700;">Enter weekly numbers from the Tars email report</h3>
       <div class="form-grid">
         <div class="field"><label>Week start date</label><input type="date" id="f-week"></div>
         <div class="field"><label>Week label</label><input type="text" id="f-label" placeholder="Nov 16-22"></div>
         <div class="field"><label>Visitors</label><input type="number" id="f-visitors" min="0"></div>
         <div class="field"><label>Widget opens</label><input type="number" id="f-widget" min="0"></div>
+        <div class="field"><label>Convos started</label><input type="number" id="f-started" min="0"></div>
         <div class="field"><label>Conversations</label><input type="number" id="f-convos" min="0"></div>
         <div class="field"><label>Outcomes</label><input type="number" id="f-outcomes" min="0"></div>
         <div class="field"><label>Sermon clicks</label><input type="number" id="f-sermons" min="0"></div>
@@ -197,14 +180,16 @@ tr:hover td { background: rgba(124,106,239,0.04); }
         <div class="field"><label>Visit planning</label><input type="number" id="f-visit" min="0"></div>
         <div class="field"><label>Event info</label><input type="number" id="f-eventinfo" min="0"></div>
         <div class="field"><label>Service time Qs</label><input type="number" id="f-service" min="0"></div>
-        <div class="field"><label>Group/ministry Qs</label><input type="number" id="f-group" min="0"></div>
+        <div class="field"><label>Group/ministry</label><input type="number" id="f-group" min="0"></div>
         <div class="field"><label>Staff contact</label><input type="number" id="f-staff" min="0"></div>
         <div class="field"><label>Child attendance</label><input type="number" id="f-child" min="0"></div>
-        <div class="field"><label>Helpful: answered</label><input type="number" id="f-helpful-ans" min="0"></div>
-        <div class="field"><label>Helpful: asked</label><input type="number" id="f-helpful-ask" min="0"></div>
+        <div class="field"><label>Helpful: answered</label><input type="number" id="f-ha" min="0"></div>
+        <div class="field"><label>Helpful: asked</label><input type="number" id="f-hq" min="0"></div>
+        <div class="field"><label>Sermon embed: pass</label><input type="number" id="f-eval1-pass" min="0"></div>
+        <div class="field"><label>Sermon embed: fail</label><input type="number" id="f-eval1-fail" min="0"></div>
       </div>
-      <div class="field" style="margin-top:14px;"><label>Notes</label><textarea id="f-notes" placeholder="What happened this week"></textarea></div>
-      <div class="btn-row">
+      <div class="field" style="margin-top:12px"><label>Change log (what you changed in the bot this week)</label><textarea id="f-notes" placeholder="Updated sermon instructions. Activated embed evaluator."></textarea></div>
+      <div style="margin-top:16px;display:flex;align-items:center;gap:14px">
         <button class="btn btn-primary" id="save-btn">Save Week</button>
         <span class="save-msg" id="save-msg"></span>
       </div>
@@ -213,264 +198,322 @@ tr:hover td { background: rgba(124,106,239,0.04); }
 </div>
 
 <script>
-const STORE_KEY = 'tars_tracker_weeks';
-function loadWeeks() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { return []; } }
-function saveWeeks(w) { localStorage.setItem(STORE_KEY, JSON.stringify(w)); }
-function sorted(w) { return [...w].sort((a, b) => a.week.localeCompare(b.week)); }
+const K='tars_tracker_weeks';
+function load(){try{return JSON.parse(localStorage.getItem(K))||[]}catch{return[]}}
+function save(w){localStorage.setItem(K,JSON.stringify(w))}
+function S(w){return[...w].sort((a,b)=>a.week.localeCompare(b.week))}
+const V=x=>x==null||x===''?null:+x;
+const F=x=>x==null?'—':x.toLocaleString();
+const P=(a,b)=>b?Math.round((a/b)*100):null;
+const rc=()=>{const s=getComputedStyle(document.documentElement);return['--c0','--c1','--c2','--c3','--c4','--c5'].map(c=>s.getPropertyValue(c).trim())};
 
-// Seed with both baseline weeks
-if (!loadWeeks().length) {
-  saveWeeks([
-    { week:"2026-11-02", week_label:"Nov 2-8", visitors:4819, widget_opens:2142, conversations:418, outcomes:177, sermon_clicks:78, sermon_topics:94, life_groups:32, give:31, events:36, visit_planning:16, event_info:46, service_time:127, group_ministry:49, donation_giving:40, event_registration:23, online_access:29, staff_contact:0, child_attendance:0, helpful_asked:338, helpful_answered:153, volunteer:16, preacher_schedule:14, notes:"Strong week. Conversations +142%, outcomes +177%, widget opens +464% vs prior. Give +520%, Life Groups +146%, Sermons +212%. Busiest: Sunday 8 AM. 100% AI handled." },
-    { week:"2026-11-09", week_label:"Nov 9-15", visitors:5348, widget_opens:2978, conversations:370, outcomes:151, sermon_clicks:79, sermon_topics:92, life_groups:22, give:14, events:36, visit_planning:19, event_info:48, service_time:79, group_ministry:45, donation_giving:22, event_registration:15, online_access:13, staff_contact:12, child_attendance:10, helpful_asked:277, helpful_answered:131, notes:"Visitors +11%, widget opens +39%. Conversations -11%, outcomes -15%. Give -55%, Life Groups -31%. Watch sermons top intent at 21%. Nov 15 spike: 2,244 visitors." }
-  ]);
-}
+// Seed
+if(!load().length){save([
+{week:"2026-11-02",week_label:"Nov 2-8",visitors:4819,widget_opens:2142,convos_started:353,conversations:418,outcomes:177,sermon_clicks:78,sermon_topics:94,life_groups:32,give:31,events:36,visit_planning:16,event_info:46,service_time:127,group_ministry:49,donation_giving:40,event_registration:23,online_access:29,staff_contact:0,child_attendance:0,helpful_asked:338,helpful_answered:153,volunteer:16,preacher_schedule:14,eval_sermon_pass:null,eval_sermon_fail:null,notes:"Strong week. Conversations +142%, outcomes +177%. Give +520%, Life Groups +146%. 100% AI handled."},
+{week:"2026-11-09",week_label:"Nov 9-15",visitors:5348,widget_opens:2978,convos_started:299,conversations:370,outcomes:151,sermon_clicks:79,sermon_topics:92,life_groups:22,give:14,events:36,visit_planning:19,event_info:48,service_time:79,group_ministry:45,donation_giving:22,event_registration:15,online_access:13,staff_contact:12,child_attendance:10,helpful_asked:277,helpful_answered:131,eval_sermon_pass:null,eval_sermon_fail:null,notes:"Visitors +11%, widget opens +39%. Conversations -11%, outcomes -15%. Give -55%, Life Groups -31%. Sermon embed evaluator created and activated Nov 24."}
+])}
 
-const v = x => x == null || x === '' ? null : +x;
-const fmt = x => x == null ? '—' : x.toLocaleString();
-const pct = (a, b) => b ? Math.round((a / b) * 100) : null;
-const chg = (c, p) => {
-  if (p == null || c == null || p === 0) return { text: '', cls: 'flat' };
-  const d = Math.round(((c - p) / p) * 100);
-  return d > 0 ? { text: '▲ ' + d + '%', cls: 'up' } : d < 0 ? { text: '▼ ' + Math.abs(d) + '%', cls: 'down' } : { text: '0%', cls: 'flat' };
-};
-const rc = () => { const s = getComputedStyle(document.documentElement); return ['--c0','--c1','--c2','--c3','--c4','--c5'].map(c => s.getPropertyValue(c).trim()); };
-
-// Tabs
-document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
-  t.classList.add('active');
-  document.getElementById('tab-' + t.dataset.tab).classList.add('active');
-  render();
+// TABS
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tc').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active');render();
 }));
 
-function render() {
-  const weeks = sorted(loadWeeks());
-  if (!weeks.length) return;
-  const last = weeks[weeks.length - 1];
-  const prev = weeks.length > 1 ? weeks[weeks.length - 2] : null;
-  const rate = pct(v(last.outcomes), v(last.conversations));
-  document.getElementById('takeaway').textContent = last.week_label + ': ' + fmt(v(last.conversations)) + ' conversations, ' + (rate != null ? rate + '% outcome rate' : 'no outcome data') + '. Target: 60%.';
-  renderKPIs(last, prev);
+function render(){
+  const weeks=S(load());if(!weeks.length)return;
+  const last=weeks[weeks.length-1],prev=weeks.length>1?weeks[weeks.length-2]:null;
+  const outRate=P(V(last.outcomes),V(last.conversations));
+  const woRate=P(V(last.widget_opens),V(last.visitors));
+  const helpRate=P(V(last.helpful_answered),V(last.helpful_asked));
+  const eq=calcEQ(last);
+
+  document.getElementById('takeaway').innerHTML=`<b>${last.week_label}</b>: ${F(V(last.conversations))} conversations, ${outRate!=null?outRate+'%':'—'} outcome rate (target: 60%). Engagement quality score: <b>${eq}/100</b>.`;
+
+  renderScoreboard(last,prev,weeks);
   renderMainChart(weeks);
   renderIntentsChart(weeks);
-  renderFunnelChart(last);
+  renderWaterfall(last);
+  renderBotQuestions(last);
+  renderEQCard(last,prev);
   renderRatesChart(weeks);
-  renderTopics(last);
+  renderEQChart(weeks);
+  renderTopics(last,prev);
+  renderEvals(last);
+  renderChangelog(weeks);
   renderTable(weeks);
 }
 
-function renderKPIs(last, prev) {
-  const rate = pct(v(last.outcomes), v(last.conversations));
-  const prevRate = prev ? pct(v(prev.outcomes), v(prev.conversations)) : null;
-  const woRate = pct(v(last.widget_opens), v(last.visitors));
-  const prevWo = prev ? pct(v(prev.widget_opens), v(prev.visitors)) : null;
-  const cards = [
-    { label:'Visitors', val:fmt(v(last.visitors)), ...chg(v(last.visitors), prev?v(prev.visitors):null) },
-    { label:'Widget Opens', val:fmt(v(last.widget_opens)), ...chg(v(last.widget_opens), prev?v(prev.widget_opens):null) },
-    { label:'Conversations', val:fmt(v(last.conversations)), ...chg(v(last.conversations), prev?v(prev.conversations):null) },
-    { label:'Outcome Rate', val:rate!=null?rate+'%':'—', ...chg(rate, prevRate), target:'Target: 60%', accent:true },
-    { label:'Widget Open Rate', val:woRate!=null?woRate+'%':'—', ...chg(woRate, prevWo), target:'Target: >50%' },
-    { label:'Sermon Clicks', val:fmt(v(last.sermon_clicks)), ...chg(v(last.sermon_clicks), prev?v(prev.sermon_clicks):null) },
-    { label:'Life Groups', val:fmt(v(last.life_groups)), ...chg(v(last.life_groups), prev?v(prev.life_groups):null) },
-    { label:'Give', val:fmt(v(last.give)), ...chg(v(last.give), prev?v(prev.give):null) },
+function calcEQ(w){
+  const outR=P(V(w.outcomes),V(w.conversations))||0;
+  const helpR=P(V(w.helpful_answered),V(w.helpful_asked))||0;
+  const convR=P(V(w.convos_started||w.conversations),V(w.widget_opens))||0;
+  return Math.round(outR*0.4+helpR*0.3+convR*0.3);
+}
+
+function trend(weeks,fn){
+  if(weeks.length<2)return{dir:'flat',txt:'Baseline'};
+  const vals=weeks.map(fn).filter(x=>x!=null);
+  if(vals.length<2)return{dir:'flat',txt:'Baseline'};
+  const first=vals[0],last2=vals[vals.length-1];
+  const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
+  const d=last2-first;
+  if(d>0)return{dir:'up',txt:'↑ Trending up (avg '+Math.round(avg)+')'};
+  if(d<0)return{dir:'down',txt:'↓ Trending down (avg '+Math.round(avg)+')'};
+  return{dir:'flat',txt:'→ Flat (avg '+Math.round(avg)+')'};
+}
+
+function goalStatus(current,target,higherIsBetter){
+  if(current==null)return'gray';
+  if(higherIsBetter){
+    if(current>=target)return'green';
+    if(current>=target*0.8)return'yellow';
+    return'red';
+  }else{
+    if(current<=target)return'green';
+    if(current<=target*1.2)return'yellow';
+    return'red';
+  }
+}
+
+function gapText(current,target,unit,higherIsBetter){
+  if(current==null)return'';
+  const gap=current-target;
+  if(higherIsBetter){
+    if(gap>=0)return{txt:'+'+gap+unit+' above target',cls:'g-ok'};
+    return{txt:Math.abs(gap)+unit+' below target',cls:'g-bad'};
+  }else{
+    if(gap<=0)return{txt:'On target',cls:'g-ok'};
+    return{txt:'+'+gap+unit+' above target',cls:'g-bad'};
+  }
+}
+
+function renderScoreboard(last,prev,weeks){
+  const outR=P(V(last.outcomes),V(last.conversations));
+  const woR=P(V(last.widget_opens),V(last.visitors));
+  const prevOut=prev?P(V(prev.outcomes),V(prev.conversations)):null;
+  const prevWo=prev?P(V(prev.widget_opens),V(prev.visitors)):null;
+  const sermonT=trend(weeks,w=>V(w.sermon_clicks));
+  const giveT=trend(weeks,w=>V(w.give));
+  const lgT=trend(weeks,w=>V(w.life_groups));
+  const eq=calcEQ(last);
+  const prevEq=prev?calcEQ(prev):null;
+
+  const cards=[
+    {label:'Outcome Rate',val:outR!=null?outR+'%':'—',target:'60%',status:goalStatus(outR,60,true),gap:gapText(outR,60,'%',true),trend:trend(weeks,w=>P(V(w.outcomes),V(w.conversations)))},
+    {label:'Widget Open Rate',val:woR!=null?woR+'%':'—',target:'>50%',status:goalStatus(woR,50,true),gap:gapText(woR,50,'%',true),trend:trend(weeks,w=>P(V(w.widget_opens),V(w.visitors)))},
+    {label:'Engagement Quality',val:eq+'/100',target:'70',status:goalStatus(eq,70,true),gap:gapText(eq,70,'pts',true),trend:trend(weeks,w=>calcEQ(w))},
+    {label:'Sermon Clicks',val:F(V(last.sermon_clicks)),target:'+2%/mo',status:sermonT.dir==='up'?'green':sermonT.dir==='down'?'red':'yellow',gap:{txt:sermonT.dir==='up'?'Growing':'Needs growth',cls:sermonT.dir==='up'?'g-ok':'g-warn'},trend:sermonT},
+    {label:'Give Clicks',val:F(V(last.give)),target:'Flat+',status:giveT.dir==='up'||giveT.dir==='flat'?'green':'red',gap:{txt:V(last.give)!=null&&prev&&V(prev.give)!=null?(V(last.give)-V(prev.give)>0?'+':'')+(V(last.give)-V(prev.give))+' vs prev':'Baseline',cls:V(last.give)!=null&&prev&&V(prev.give)!=null?(V(last.give)>=V(prev.give)?'g-ok':'g-bad'):'g-warn'},trend:giveT},
+    {label:'Life Groups',val:F(V(last.life_groups)),target:'Flat+',status:lgT.dir==='up'||lgT.dir==='flat'?'green':'red',gap:{txt:V(last.life_groups)!=null&&prev&&V(prev.life_groups)!=null?(V(last.life_groups)-V(prev.life_groups)>0?'+':'')+(V(last.life_groups)-V(prev.life_groups))+' vs prev':'Baseline',cls:V(last.life_groups)!=null&&prev&&V(prev.life_groups)!=null?(V(last.life_groups)>=V(prev.life_groups)?'g-ok':'g-bad'):'g-warn'},trend:lgT},
   ];
-  document.getElementById('kpis').innerHTML = cards.map(c => `
-    <div class="kpi${c.accent?' kpi-accent':''}">
-      <div class="kpi-label">${c.label}</div>
-      <div class="kpi-val">${c.val}</div>
-      ${c.text ? `<div class="kpi-change ${c.cls}">${c.text}</div>` : ''}
-      ${c.target ? `<div class="kpi-target">${c.target}</div>` : ''}
+  document.getElementById('scoreboard').innerHTML=cards.map(c=>`
+    <div class="score-card ${c.status}">
+      <div class="sc-label">${c.label}</div>
+      <div class="sc-row"><div class="sc-val">${c.val}</div><div class="sc-target">${c.target}</div></div>
+      ${c.gap&&c.gap.txt?`<div class="sc-gap ${c.gap.cls}">${c.gap.txt}</div>`:''}
+      <div class="sc-trend">${c.trend.txt}</div>
     </div>`).join('');
 }
 
-function renderMainChart(weeks) {
-  const el = document.getElementById('chart-main'); el.innerHTML = '';
-  const c = rc(), w = el.clientWidth || 700, h = 300;
-  const m = { top: 35, right: 65, bottom: 50, left: 55 };
-  const svg = d3.select(el).append('svg').attr('width', w).attr('height', h);
-  const maxBW = 80;
-  const x = d3.scaleBand().domain(weeks.map(r => r.week_label)).range([m.left, w - m.right]).padding(weeks.length < 4 ? 0.6 : 0.3);
-  const bw = Math.min(x.bandwidth(), maxBW), bOff = (x.bandwidth() - bw) / 2;
-  const yB = d3.scaleLinear().domain([0, d3.max(weeks, r => v(r.conversations)) * 1.35]).range([h - m.bottom, m.top]);
-  const yL = d3.scaleLinear().domain([0, 100]).range([h - m.bottom, m.top]);
-
-  // Grid
-  yB.ticks(5).forEach(t => svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',yB(t)).attr('y2',yB(t)).attr('stroke','var(--border)'));
-
-  svg.append('g').attr('transform',`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').attr('fill','var(--fg3)').style('font-size','12px').style('font-weight','500');
-  svg.append('g').attr('transform',`translate(${m.left},0)`).call(d3.axisLeft(yB).ticks(5).tickFormat(d3.format(','))).selectAll('text').attr('fill','var(--fg3)').style('font-size','11px');
-  svg.append('g').attr('transform',`translate(${w-m.right},0)`).call(d3.axisRight(yL).ticks(5).tickFormat(d=>d+'%')).selectAll('text').attr('fill','var(--fg3)').style('font-size','11px');
-  svg.selectAll('.domain').remove();
-  svg.selectAll('.tick line').attr('stroke','var(--border)');
-
-  // Gradient for bars
-  const defs = svg.append('defs');
-  const grad = defs.append('linearGradient').attr('id','barGrad').attr('x1','0').attr('y1','0').attr('x2','0').attr('y2','1');
-  grad.append('stop').attr('offset','0%').attr('stop-color',c[0]).attr('stop-opacity',0.9);
-  grad.append('stop').attr('offset','100%').attr('stop-color',c[0]).attr('stop-opacity',0.5);
-
-  svg.selectAll('.bar').data(weeks).join('rect').attr('x',d=>x(d.week_label)+bOff).attr('y',d=>yB(v(d.conversations)||0)).attr('width',bw).attr('height',d=>h-m.bottom-yB(v(d.conversations)||0)).attr('fill','url(#barGrad)').attr('rx',5);
-  // Value labels
-  svg.selectAll('.blbl').data(weeks).join('text').attr('x',d=>x(d.week_label)+x.bandwidth()/2).attr('y',d=>yB(v(d.conversations)||0)-10).attr('text-anchor','middle').attr('fill',c[0]).style('font-size','12px').style('font-weight','700').style('font-family','JetBrains Mono, monospace').text(d=>fmt(v(d.conversations)));
-
-  // Target
-  svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',yL(60)).attr('y2',yL(60)).attr('stroke','var(--warn)').attr('stroke-dasharray','8,4').attr('stroke-width',1.5).attr('opacity',0.7);
-  svg.append('text').attr('x',w-m.right+4).attr('y',yL(60)+4).text('60%').attr('fill','var(--warn)').style('font-size','11px').style('font-weight','600');
-
-  // Rate line
-  if (weeks.length > 1) {
-    const ln = d3.line().x(d=>x(d.week_label)+x.bandwidth()/2).y(d=>yL(pct(v(d.outcomes),v(d.conversations))||0));
-    svg.append('path').datum(weeks).attr('d',ln).attr('fill','none').attr('stroke',c[1]).attr('stroke-width',3);
-  }
-  svg.selectAll('.dot').data(weeks).join('circle').attr('cx',d=>x(d.week_label)+x.bandwidth()/2).attr('cy',d=>yL(pct(v(d.outcomes),v(d.conversations))||0)).attr('r',7).attr('fill',c[1]).attr('stroke','var(--bg)').attr('stroke-width',3);
-  svg.selectAll('.dlbl').data(weeks).join('text').attr('x',d=>x(d.week_label)+x.bandwidth()/2).attr('y',d=>yL(pct(v(d.outcomes),v(d.conversations))||0)-14).attr('text-anchor','middle').attr('fill',c[1]).style('font-size','13px').style('font-weight','700').style('font-family','JetBrains Mono, monospace').text(d=>{const r=pct(v(d.outcomes),v(d.conversations)); return r!=null?r+'%':'';});
-
-  const tip = document.createElement('div'); tip.className='tooltip'; el.appendChild(tip);
-  svg.selectAll('rect,circle').on('pointerenter',(ev,d)=>{const r=pct(v(d.outcomes),v(d.conversations)); tip.innerHTML=`<b>${d.week_label}</b><br>${fmt(v(d.conversations))} conversations<br>${fmt(v(d.outcomes))} outcomes<br>${r!=null?r+'% outcome rate':'no data'}`; tip.style.display='block'; const b=el.getBoundingClientRect(); tip.style.left=(ev.clientX-b.left+14)+'px'; tip.style.top=(ev.clientY-b.top-44)+'px';}).on('pointerleave',()=>{tip.style.display='none';});
-
-  document.getElementById('legend-main').innerHTML = `<div class="legend-item"><div class="legend-dot" style="background:${c[0]}"></div>Conversations</div><div class="legend-item"><div class="legend-dot" style="background:${c[1]}"></div>Outcome Rate</div><div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div>60% Target</div>`;
+function renderMainChart(weeks){
+  const el=document.getElementById('ch-main');el.innerHTML='';
+  const c=rc(),w=el.clientWidth||500,h=260;
+  const m={top:30,right:55,bottom:40,left:50};
+  const svg=d3.select(el).append('svg').attr('width',w).attr('height',h);
+  const maxBW=60;
+  const x=d3.scaleBand().domain(weeks.map(r=>r.week_label)).range([m.left,w-m.right]).padding(weeks.length<4?.55:.3);
+  const bw=Math.min(x.bandwidth(),maxBW),bO=(x.bandwidth()-bw)/2;
+  const yB=d3.scaleLinear().domain([0,d3.max(weeks,r=>V(r.conversations))*1.35]).range([h-m.bottom,m.top]);
+  const yL=d3.scaleLinear().domain([0,100]).range([h-m.bottom,m.top]);
+  yB.ticks(4).forEach(t=>svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',yB(t)).attr('y2',yB(t)).attr('stroke','var(--bdr)'));
+  svg.append('g').attr('transform',`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').attr('fill','var(--fg3)').style('font-size','11px');
+  svg.append('g').attr('transform',`translate(${m.left},0)`).call(d3.axisLeft(yB).ticks(4).tickFormat(d3.format(','))).selectAll('text').attr('fill','var(--fg3)').style('font-size','10px');
+  svg.append('g').attr('transform',`translate(${w-m.right},0)`).call(d3.axisRight(yL).ticks(4).tickFormat(d=>d+'%')).selectAll('text').attr('fill','var(--fg3)').style('font-size','10px');
+  svg.selectAll('.domain').remove();svg.selectAll('.tick line').attr('stroke','var(--bdr)');
+  const defs=svg.append('defs');const g=defs.append('linearGradient').attr('id','bg1').attr('x1',0).attr('y1',0).attr('x2',0).attr('y2',1);g.append('stop').attr('offset','0%').attr('stop-color',c[0]).attr('stop-opacity',.9);g.append('stop').attr('offset','100%').attr('stop-color',c[0]).attr('stop-opacity',.4);
+  svg.selectAll('.bar').data(weeks).join('rect').attr('x',d=>x(d.week_label)+bO).attr('y',d=>yB(V(d.conversations)||0)).attr('width',bw).attr('height',d=>h-m.bottom-yB(V(d.conversations)||0)).attr('fill','url(#bg1)').attr('rx',4);
+  svg.selectAll('.blbl').data(weeks).join('text').attr('x',d=>x(d.week_label)+x.bandwidth()/2).attr('y',d=>yB(V(d.conversations)||0)-8).attr('text-anchor','middle').attr('fill',c[0]).style('font-size','11px').style('font-weight','700').style('font-family','JetBrains Mono').text(d=>F(V(d.conversations)));
+  svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',yL(60)).attr('y2',yL(60)).attr('stroke','var(--warn)').attr('stroke-dasharray','6,4').attr('stroke-width',1.5).attr('opacity',.7);
+  if(weeks.length>1){const ln=d3.line().x(d=>x(d.week_label)+x.bandwidth()/2).y(d=>yL(P(V(d.outcomes),V(d.conversations))||0));svg.append('path').datum(weeks).attr('d',ln).attr('fill','none').attr('stroke',c[1]).attr('stroke-width',2.5);}
+  svg.selectAll('.dot').data(weeks).join('circle').attr('cx',d=>x(d.week_label)+x.bandwidth()/2).attr('cy',d=>yL(P(V(d.outcomes),V(d.conversations))||0)).attr('r',6).attr('fill',c[1]).attr('stroke','var(--bg)').attr('stroke-width',2.5);
+  svg.selectAll('.dlbl').data(weeks).join('text').attr('x',d=>x(d.week_label)+x.bandwidth()/2).attr('y',d=>yL(P(V(d.outcomes),V(d.conversations))||0)-12).attr('text-anchor','middle').attr('fill',c[1]).style('font-size','12px').style('font-weight','700').style('font-family','JetBrains Mono').text(d=>{const r=P(V(d.outcomes),V(d.conversations));return r!=null?r+'%':'';});
+  document.getElementById('lg-main').innerHTML=`<div class="legend-item"><div class="legend-dot" style="background:${c[0]}"></div>Conversations</div><div class="legend-item"><div class="legend-dot" style="background:${c[1]}"></div>Outcome Rate</div><div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div>60% Target</div>`;
 }
 
-function renderIntentsChart(weeks) {
-  const el = document.getElementById('chart-intents'); el.innerHTML = '';
-  const series = [{key:'sermon_clicks',label:'Sermons'},{key:'life_groups',label:'Life Groups'},{key:'give',label:'Give'},{key:'events',label:'Events'}];
-  const c = rc(), w = el.clientWidth || 700, h = 300;
-  const m = { top: 30, right: 20, bottom: 50, left: 55 };
-  const svg = d3.select(el).append('svg').attr('width', w).attr('height', h);
-  const x0 = d3.scaleBand().domain(weeks.map(r=>r.week_label)).range([m.left,w-m.right]).padding(weeks.length<4?0.35:0.2);
-  const x1 = d3.scaleBand().domain(series.map(s=>s.key)).range([0,Math.min(x0.bandwidth(),320)]).padding(0.1);
-  const allV = weeks.flatMap(r=>series.map(s=>v(r[s.key])||0));
-  const y = d3.scaleLinear().domain([0,d3.max(allV)*1.35||100]).range([h-m.bottom,m.top]);
-
-  y.ticks(5).forEach(t=>svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(t)).attr('y2',y(t)).attr('stroke','var(--border)'));
-  svg.append('g').attr('transform',`translate(0,${h-m.bottom})`).call(d3.axisBottom(x0).tickSize(0)).selectAll('text').attr('fill','var(--fg3)').style('font-size','12px').style('font-weight','500');
-  svg.append('g').attr('transform',`translate(${m.left},0)`).call(d3.axisLeft(y).ticks(5)).selectAll('text').attr('fill','var(--fg3)').style('font-size','11px');
-  svg.selectAll('.domain').remove(); svg.selectAll('.tick line').attr('stroke','var(--border)');
-
-  // Gradients for each series
-  const defs = svg.append('defs');
-  series.forEach((s,i)=>{const g=defs.append('linearGradient').attr('id','ig'+i).attr('x1','0').attr('y1','0').attr('x2','0').attr('y2','1'); g.append('stop').attr('offset','0%').attr('stop-color',c[i]).attr('stop-opacity',0.9); g.append('stop').attr('offset','100%').attr('stop-color',c[i]).attr('stop-opacity',0.45);});
-
-  const groups = svg.selectAll('.wg').data(weeks).join('g').attr('transform',d=>`translate(${x0(d.week_label)},0)`);
-  series.forEach((s,i)=>{
-    groups.append('rect').attr('x',x1(s.key)).attr('y',d=>y(v(d[s.key])||0)).attr('width',x1.bandwidth()).attr('height',d=>h-m.bottom-y(v(d[s.key])||0)).attr('fill','url(#ig'+i+')').attr('rx',4);
-    groups.append('text').attr('x',x1(s.key)+x1.bandwidth()/2).attr('y',d=>y(v(d[s.key])||0)-6).attr('text-anchor','middle').attr('fill',c[i]).style('font-size','10px').style('font-weight','700').style('font-family','JetBrains Mono, monospace').text(d=>v(d[s.key])||0);
-  });
-
-  const tip = document.createElement('div'); tip.className='tooltip'; el.appendChild(tip);
-  groups.selectAll('rect').on('pointerenter',(ev,d)=>{tip.innerHTML=`<b>${d.week_label}</b><br>Sermons: ${fmt(v(d.sermon_clicks))}<br>Life Groups: ${fmt(v(d.life_groups))}<br>Give: ${fmt(v(d.give))}<br>Events: ${fmt(v(d.events))}`; tip.style.display='block'; const b=el.getBoundingClientRect(); tip.style.left=(ev.clientX-b.left+14)+'px'; tip.style.top=(ev.clientY-b.top-44)+'px';}).on('pointerleave',()=>{tip.style.display='none';});
-
-  document.getElementById('legend-intents').innerHTML = series.map((s,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${s.label}</div>`).join('');
+function renderIntentsChart(weeks){
+  const el=document.getElementById('ch-intents');el.innerHTML='';
+  const series=[{key:'sermon_clicks',label:'Sermons'},{key:'life_groups',label:'Life Groups'},{key:'give',label:'Give'},{key:'events',label:'Events'}];
+  const c=rc(),w=el.clientWidth||500,h=260;
+  const m={top:30,right:20,bottom:40,left:50};
+  const svg=d3.select(el).append('svg').attr('width',w).attr('height',h);
+  const x0=d3.scaleBand().domain(weeks.map(r=>r.week_label)).range([m.left,w-m.right]).padding(weeks.length<4?.35:.2);
+  const x1=d3.scaleBand().domain(series.map(s=>s.key)).range([0,Math.min(x0.bandwidth(),280)]).padding(.1);
+  const allV=weeks.flatMap(r=>series.map(s=>V(r[s.key])||0));
+  const y=d3.scaleLinear().domain([0,d3.max(allV)*1.35||100]).range([h-m.bottom,m.top]);
+  y.ticks(4).forEach(t=>svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(t)).attr('y2',y(t)).attr('stroke','var(--bdr)'));
+  svg.append('g').attr('transform',`translate(0,${h-m.bottom})`).call(d3.axisBottom(x0).tickSize(0)).selectAll('text').attr('fill','var(--fg3)').style('font-size','11px');
+  svg.append('g').attr('transform',`translate(${m.left},0)`).call(d3.axisLeft(y).ticks(4)).selectAll('text').attr('fill','var(--fg3)').style('font-size','10px');
+  svg.selectAll('.domain').remove();svg.selectAll('.tick line').attr('stroke','var(--bdr)');
+  const defs=svg.append('defs');series.forEach((s,i)=>{const g=defs.append('linearGradient').attr('id','ig'+i).attr('x1',0).attr('y1',0).attr('x2',0).attr('y2',1);g.append('stop').attr('offset','0%').attr('stop-color',c[i]).attr('stop-opacity',.9);g.append('stop').attr('offset','100%').attr('stop-color',c[i]).attr('stop-opacity',.4);});
+  const groups=svg.selectAll('.wg').data(weeks).join('g').attr('transform',d=>`translate(${x0(d.week_label)},0)`);
+  series.forEach((s,i)=>{groups.append('rect').attr('x',x1(s.key)).attr('y',d=>y(V(d[s.key])||0)).attr('width',x1.bandwidth()).attr('height',d=>h-m.bottom-y(V(d[s.key])||0)).attr('fill','url(#ig'+i+')').attr('rx',3);groups.append('text').attr('x',x1(s.key)+x1.bandwidth()/2).attr('y',d=>y(V(d[s.key])||0)-5).attr('text-anchor','middle').attr('fill',c[i]).style('font-size','9px').style('font-weight','700').style('font-family','JetBrains Mono').text(d=>V(d[s.key])||0);});
+  document.getElementById('lg-intents').innerHTML=series.map((s,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${s.label}</div>`).join('');
 }
 
-function renderFunnelChart(last) {
-  const el = document.getElementById('chart-funnel'); el.innerHTML = '';
-  const steps = [{label:'Visitors',val:v(last.visitors)},{label:'Widget Opens',val:v(last.widget_opens)},{label:'Conversations',val:v(last.conversations)},{label:'Outcomes',val:v(last.outcomes)}];
-  const maxV = steps[0].val || 1;
-  const c = rc();
-  const gradients = [
-    `linear-gradient(135deg, ${c[0]}, ${c[5]})`,
-    `linear-gradient(135deg, ${c[5]}, ${c[1]})`,
-    `linear-gradient(135deg, ${c[1]}, ${c[3]})`,
-    `linear-gradient(135deg, ${c[3]}, ${c[4]})`
+function renderWaterfall(last){
+  const el=document.getElementById('waterfall');el.innerHTML='';
+  const steps=[{label:'Visitors',val:V(last.visitors)},{label:'Widget Opens',val:V(last.widget_opens)},{label:'Started Talking',val:V(last.convos_started||last.conversations)},{label:'Conversations',val:V(last.conversations)},{label:'Outcomes',val:V(last.outcomes)}];
+  const maxV=steps[0].val||1;const c=rc();
+  const grads=[`linear-gradient(135deg,${c[0]},${c[5]})`,`linear-gradient(135deg,${c[5]},${c[1]})`,`linear-gradient(135deg,${c[1]},${c[3]})`,`linear-gradient(135deg,${c[3]},${c[4]})`,`linear-gradient(135deg,${c[4]},${c[2]})`];
+  let bottleneckIdx=0,bottleneckDrop=0;
+  for(let i=1;i<steps.length;i++){const drop=steps[i-1].val-steps[i].val;if(drop>bottleneckDrop){bottleneckDrop=drop;bottleneckIdx=i;}}
+  el.innerHTML=steps.map((s,i)=>{
+    const pW=Math.max(10,(s.val/maxV)*100);
+    const conv=i>0?Math.round((s.val/steps[i-1].val)*100):100;
+    const isBottleneck=i===bottleneckIdx&&i>0;
+    return`<div class="wf-step"><div class="wf-label">${s.label}</div><div class="wf-bar-wrap"><div class="wf-bar" style="width:${pW}%;background:${grads[i]};${isBottleneck?'box-shadow:0 0 12px rgba(239,91,91,0.3);border:1px solid rgba(239,91,91,0.3);':''}">${F(s.val)}<span class="wf-conv">${i>0?conv+'%':''}</span></div></div></div>`;
+  }).join('');
+  el.innerHTML+=`<div class="wf-bottleneck">⚠ Biggest drop: <b>${steps[bottleneckIdx-1].label} → ${steps[bottleneckIdx].label}</b> (lost ${F(bottleneckDrop)} people, ${100-Math.round((steps[bottleneckIdx].val/steps[bottleneckIdx-1].val)*100)}% drop)</div>`;
+}
+
+function renderBotQuestions(last){
+  const el=document.getElementById('bot-questions');el.innerHTML='';
+  const qs=[
+    {label:'Was this helpful?',answered:V(last.helpful_answered),asked:V(last.helpful_asked)},
   ];
-  el.innerHTML = steps.map((s,i)=>{
-    const pctW = Math.max(12, (s.val / maxV) * 100);
-    const convPct = i>0 ? Math.round((s.val / steps[i-1].val)*100) : 100;
-    return `<div class="funnel-step">
-      <div class="funnel-label">${s.label}</div>
-      <div class="funnel-bar-wrap">
-        <div class="funnel-bar" style="width:${pctW}%; background:${gradients[i]};">
-          ${fmt(s.val)}
-          <span class="funnel-pct">${i>0?convPct+'%':''}</span>
-        </div>
-      </div>
-    </div>`;
+  if(!qs[0].asked){el.innerHTML='<p style="color:var(--fg3);font-size:13px;">No bot question data available yet. Add "Helpful: asked" and "Helpful: answered" in the Add Week form.</p>';return;}
+  el.innerHTML=qs.map(q=>{
+    const rate=P(q.answered,q.asked);
+    const color=rate>=70?'var(--ok)':rate>=50?'var(--warn)':'var(--bad)';
+    return`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--fg2);font-weight:500">${q.label}</span><span class="mono" style="font-weight:700;color:${color}">${rate}% (${q.answered}/${q.asked})</span></div><div style="height:8px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden"><div style="height:100%;width:${rate}%;background:${color};border-radius:4px;transition:width .6s"></div></div></div>`;
   }).join('');
+  el.innerHTML+='<p style="font-size:11px;color:var(--fg3);margin-top:8px">Add more bot question completion rates (campus, sermon type, life group interest) as you extract them from the Fields Captured section of the Tars report.</p>';
 }
 
-function renderRatesChart(weeks) {
-  const el = document.getElementById('chart-rates'); el.innerHTML = '';
-  const c = rc(), w = el.clientWidth || 700, h = 280;
-  const m = { top: 30, right: 20, bottom: 50, left: 55 };
-  const svg = d3.select(el).append('svg').attr('width', w).attr('height', h);
-  const x = d3.scaleBand().domain(weeks.map(r=>r.week_label)).range([m.left,w-m.right]).padding(weeks.length<4?0.6:0.2);
-  const y = d3.scaleLinear().domain([0,100]).range([h-m.bottom,m.top]);
+function renderEQCard(last,prev){
+  const el=document.getElementById('eq-score');el.innerHTML='';
+  const eq=calcEQ(last);const prevEq=prev?calcEQ(prev):null;
+  const outR=P(V(last.outcomes),V(last.conversations))||0;
+  const helpR=P(V(last.helpful_answered),V(last.helpful_asked))||0;
+  const convR=P(V(last.convos_started||last.conversations),V(last.widget_opens))||0;
+  const color=eq>=70?'var(--ok)':eq>=50?'var(--warn)':'var(--bad)';
+  el.innerHTML=`
+    <div style="text-align:center;margin:16px 0">
+      <div class="mono" style="font-size:48px;font-weight:700;color:${color}">${eq}</div>
+      <div style="font-size:12px;color:var(--fg3);margin-top:4px">/100${prevEq!=null?' (prev: '+prevEq+')':''}</div>
+    </div>
+    <div style="font-size:12px;color:var(--fg2)">
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr)"><span>Outcome rate (40% weight)</span><span class="mono" style="font-weight:700">${outR}%</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bdr)"><span>Helpful answer rate (30% weight)</span><span class="mono" style="font-weight:700">${helpR}%</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0"><span>Widget-to-convo rate (30% weight)</span><span class="mono" style="font-weight:700">${convR}%</span></div>
+    </div>`;
+}
 
-  y.ticks(5).forEach(t=>svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(t)).attr('y2',y(t)).attr('stroke','var(--border)'));
-  svg.append('g').attr('transform',`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').attr('fill','var(--fg3)').style('font-size','12px').style('font-weight','500');
+function renderRatesChart(weeks){
+  const el=document.getElementById('ch-rates');el.innerHTML='';
+  const c=rc(),w=el.clientWidth||700,h=280;
+  const m={top:30,right:20,bottom:40,left:50};
+  const svg=d3.select(el).append('svg').attr('width',w).attr('height',h);
+  const x=d3.scaleBand().domain(weeks.map(r=>r.week_label)).range([m.left,w-m.right]).padding(weeks.length<4?.55:.2);
+  const y=d3.scaleLinear().domain([0,100]).range([h-m.bottom,m.top]);
+  y.ticks(5).forEach(t=>svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(t)).attr('y2',y(t)).attr('stroke','var(--bdr)'));
+  svg.append('g').attr('transform',`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').attr('fill','var(--fg3)').style('font-size','12px');
   svg.append('g').attr('transform',`translate(${m.left},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(d=>d+'%')).selectAll('text').attr('fill','var(--fg3)').style('font-size','11px');
-  svg.selectAll('.domain').remove(); svg.selectAll('.tick line').attr('stroke','var(--border)');
-
-  const rates = [{key:'wo',label:'Widget Open Rate',fn:d=>pct(v(d.widget_opens),v(d.visitors)),ci:4},{key:'out',label:'Outcome Rate',fn:d=>pct(v(d.outcomes),v(d.conversations)),ci:1}];
-  rates.forEach(r=>{
-    if(weeks.length>1){const ln=d3.line().x(d=>x(d.week_label)+x.bandwidth()/2).y(d=>y(r.fn(d)||0)); svg.append('path').datum(weeks).attr('d',ln).attr('fill','none').attr('stroke',c[r.ci]).attr('stroke-width',3);}
-    svg.selectAll('.dot-'+r.key).data(weeks).join('circle').attr('cx',d=>x(d.week_label)+x.bandwidth()/2).attr('cy',d=>y(r.fn(d)||0)).attr('r',7).attr('fill',c[r.ci]).attr('stroke','var(--bg)').attr('stroke-width',3);
-    svg.selectAll('.lbl-'+r.key).data(weeks).join('text').attr('x',d=>x(d.week_label)+x.bandwidth()/2).attr('y',d=>y(r.fn(d)||0)-14).attr('text-anchor','middle').attr('fill',c[r.ci]).style('font-size','13px').style('font-weight','700').style('font-family','JetBrains Mono, monospace').text(d=>{const val=r.fn(d); return val!=null?val+'%':'';});
-  });
-
-  svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(60)).attr('y2',y(60)).attr('stroke','var(--warn)').attr('stroke-dasharray','8,4').attr('opacity',0.7);
-  svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(50)).attr('y2',y(50)).attr('stroke','var(--fg3)').attr('stroke-dasharray','4,4').attr('opacity',0.3);
-
-  document.getElementById('legend-rates').innerHTML = `<div class="legend-item"><div class="legend-dot" style="background:${c[4]}"></div>Widget Open Rate</div><div class="legend-item"><div class="legend-dot" style="background:${c[1]}"></div>Outcome Rate</div><div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div>60% Target</div>`;
+  svg.selectAll('.domain').remove();svg.selectAll('.tick line').attr('stroke','var(--bdr)');
+  const rates=[{key:'wo',fn:d=>P(V(d.widget_opens),V(d.visitors)),ci:4},{key:'out',fn:d=>P(V(d.outcomes),V(d.conversations)),ci:1}];
+  rates.forEach(r=>{if(weeks.length>1){const ln=d3.line().x(d=>x(d.week_label)+x.bandwidth()/2).y(d=>y(r.fn(d)||0));svg.append('path').datum(weeks).attr('d',ln).attr('fill','none').attr('stroke',c[r.ci]).attr('stroke-width',3);}svg.selectAll('.dot-'+r.key).data(weeks).join('circle').attr('cx',d=>x(d.week_label)+x.bandwidth()/2).attr('cy',d=>y(r.fn(d)||0)).attr('r',6).attr('fill',c[r.ci]).attr('stroke','var(--bg)').attr('stroke-width',3);svg.selectAll('.lbl-'+r.key).data(weeks).join('text').attr('x',d=>x(d.week_label)+x.bandwidth()/2).attr('y',d=>y(r.fn(d)||0)-12).attr('text-anchor','middle').attr('fill',c[r.ci]).style('font-size','13px').style('font-weight','700').style('font-family','JetBrains Mono').text(d=>{const val=r.fn(d);return val!=null?val+'%':'';});});
+  svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(60)).attr('y2',y(60)).attr('stroke','var(--warn)').attr('stroke-dasharray','8,4').attr('opacity',.7);
+  svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(50)).attr('y2',y(50)).attr('stroke','var(--fg3)').attr('stroke-dasharray','4,4').attr('opacity',.3);
+  document.getElementById('lg-rates').innerHTML=`<div class="legend-item"><div class="legend-dot" style="background:${c[4]}"></div>Widget Open Rate</div><div class="legend-item"><div class="legend-dot" style="background:${c[1]}"></div>Outcome Rate</div><div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div>60% / 50% Targets</div>`;
 }
 
-function renderTopics(last) {
-  const el = document.getElementById('chart-topics'); el.innerHTML = '';
-  const topics = [
-    {label:'Sermon access',val:v(last.sermon_topics)||0},
-    {label:'Service time & location',val:v(last.service_time)||0},
-    {label:'Event information',val:v(last.event_info)||0},
-    {label:'Group & ministry',val:v(last.group_ministry)||0},
-    {label:'Donation & giving',val:v(last.donation_giving)||0},
-    {label:'Visit planning',val:v(last.visit_planning)||0},
-    {label:'Event registration',val:v(last.event_registration)||0},
-    {label:'Online access',val:v(last.online_access)||0},
-    {label:'Staff contact',val:v(last.staff_contact)||0},
-    {label:'Child attendance',val:v(last.child_attendance)||0},
-  ].filter(t=>t.val>0).sort((a,b)=>b.val-a.val);
-  const maxV = topics[0]?.val || 1;
-  const total = topics.reduce((s,t)=>s+t.val,0);
-  const c = rc();
-  el.innerHTML = topics.map((t,i)=>{
-    const pW = Math.max(8, (t.val/maxV)*100);
-    const share = Math.round((t.val/total)*100);
-    return `<div class="topic-row">
-      <div class="topic-label">${t.label}</div>
-      <div class="topic-track">
-        <div class="topic-fill" style="width:${pW}%; background:linear-gradient(135deg, ${c[i%c.length]}, ${c[(i+1)%c.length]});">
-          <span>${t.val}</span>
-          <span class="topic-pct">${share}%</span>
-        </div>
-      </div>
+function renderEQChart(weeks){
+  const el=document.getElementById('ch-eq');el.innerHTML='';
+  const c=rc(),w=el.clientWidth||700,h=240;
+  const m={top:30,right:20,bottom:40,left:50};
+  const svg=d3.select(el).append('svg').attr('width',w).attr('height',h);
+  const x=d3.scaleBand().domain(weeks.map(r=>r.week_label)).range([m.left,w-m.right]).padding(weeks.length<4?.55:.2);
+  const y=d3.scaleLinear().domain([0,100]).range([h-m.bottom,m.top]);
+  y.ticks(5).forEach(t=>svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(t)).attr('y2',y(t)).attr('stroke','var(--bdr)'));
+  svg.append('g').attr('transform',`translate(0,${h-m.bottom})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').attr('fill','var(--fg3)').style('font-size','12px');
+  svg.append('g').attr('transform',`translate(${m.left},0)`).call(d3.axisLeft(y).ticks(5)).selectAll('text').attr('fill','var(--fg3)').style('font-size','11px');
+  svg.selectAll('.domain').remove();svg.selectAll('.tick line').attr('stroke','var(--bdr)');
+  if(weeks.length>1){const ln=d3.line().x(d=>x(d.week_label)+x.bandwidth()/2).y(d=>y(calcEQ(d)));svg.append('path').datum(weeks).attr('d',ln).attr('fill','none').attr('stroke',c[0]).attr('stroke-width',3);}
+  svg.selectAll('.dot').data(weeks).join('circle').attr('cx',d=>x(d.week_label)+x.bandwidth()/2).attr('cy',d=>y(calcEQ(d))).attr('r',7).attr('fill',c[0]).attr('stroke','var(--bg)').attr('stroke-width',3);
+  svg.selectAll('.lbl').data(weeks).join('text').attr('x',d=>x(d.week_label)+x.bandwidth()/2).attr('y',d=>y(calcEQ(d))-14).attr('text-anchor','middle').attr('fill',c[0]).style('font-size','14px').style('font-weight','700').style('font-family','JetBrains Mono').text(d=>calcEQ(d));
+  svg.append('line').attr('x1',m.left).attr('x2',w-m.right).attr('y1',y(70)).attr('y2',y(70)).attr('stroke','var(--ok)').attr('stroke-dasharray','6,4').attr('opacity',.5);
+  svg.append('text').attr('x',w-m.right-4).attr('y',y(70)-6).attr('text-anchor','end').attr('fill','var(--ok)').style('font-size','11px').text('Target: 70');
+}
+
+function renderTopics(last,prev){
+  const el=document.getElementById('topic-bars');el.innerHTML='';
+  const topics=[
+    {label:'Sermon access',key:'sermon_topics'},
+    {label:'Service time & location',key:'service_time'},
+    {label:'Event information',key:'event_info'},
+    {label:'Group & ministry',key:'group_ministry'},
+    {label:'Donation & giving',key:'donation_giving'},
+    {label:'Visit planning',key:'visit_planning'},
+    {label:'Event registration',key:'event_registration'},
+    {label:'Online access',key:'online_access'},
+    {label:'Staff contact',key:'staff_contact'},
+    {label:'Child attendance',key:'child_attendance'},
+  ].map(t=>({...t,val:V(last[t.key])||0,prev:prev?V(prev[t.key])||0:null})).filter(t=>t.val>0).sort((a,b)=>b.val-a.val);
+  const total=topics.reduce((s,t)=>s+t.val,0);
+  const maxV=topics[0]?.val||1;const c=rc();
+  el.innerHTML=topics.map((t,i)=>{
+    const pW=Math.max(8,(t.val/maxV)*100);
+    const share=Math.round((t.val/total)*100);
+    let shift='';
+    if(t.prev!=null){const d=t.val-t.prev;shift=d>0?`<span style="color:var(--ok)">▲ +${d}</span>`:d<0?`<span style="color:var(--bad)">▼ ${d}</span>`:`<span style="color:var(--fg3)">→ 0</span>`;}
+    return`<div class="topic-row"><div class="topic-label">${t.label}</div><div class="topic-track"><div class="topic-fill" style="width:${pW}%;background:linear-gradient(135deg,${c[i%c.length]},${c[(i+1)%c.length]})"><span>${t.val}</span><span class="topic-pct">${share}%</span></div></div><div class="topic-shift">${shift}</div></div>`;
+  }).join('');
+}
+
+function renderEvals(last){
+  const el=document.getElementById('eval-cards');el.innerHTML='';
+  const evals=[
+    {name:'Sermon Video Embed',status:'Active',statusCls:'active',rule:'When lookup returns a video, embed it in the chat.',pass:V(last.eval_sermon_pass),fail:V(last.eval_sermon_fail)},
+    {name:'Next Step Routing',status:'Planned',statusCls:'planned',rule:'Visit, campus, event, life group, give answered in 2 messages.',pass:null,fail:null},
+    {name:'Most Recent Sermon',status:'Planned',statusCls:'planned',rule:'Bot finds newest sermon without asking for a topic.',pass:null,fail:null},
+    {name:'Follow-up Count',status:'Planned',statusCls:'planned',rule:'No more than 3 follow-up questions per conversation.',pass:null,fail:null},
+  ];
+  el.innerHTML=evals.map(e=>{
+    const total=(e.pass||0)+(e.fail||0);
+    const rate=total?Math.round((e.pass/total)*100):null;
+    return`<div class="eval-card ${e.statusCls}">
+      <div class="eval-name">${e.name}</div>
+      <div class="eval-status" style="color:${e.statusCls==='active'?'var(--ok)':e.statusCls==='draft'?'var(--warn)':'var(--fg3)'}">${e.status}</div>
+      <div style="font-size:12px;color:var(--fg3);margin-bottom:10px">${e.rule}</div>
+      ${total?`<div class="eval-stat"><span>Pass rate</span><b style="color:${rate>=80?'var(--ok)':rate>=60?'var(--warn)':'var(--bad)'}">${rate}%</b></div><div class="eval-stat"><span>Passed</span><b>${e.pass}</b></div><div class="eval-stat"><span>Failed</span><b style="color:var(--bad)">${e.fail}</b></div><div class="eval-stat"><span>Total graded</span><b>${total}</b></div>`:'<div style="font-size:12px;color:var(--fg3);font-style:italic">No data yet. Enter pass/fail counts in the Add Week form.</div>'}
     </div>`;
   }).join('');
 }
 
-function renderTable(weeks) {
-  const cols = [{key:'week_label',label:'Week'},{key:'visitors',label:'Visitors'},{key:'widget_opens',label:'Widget Opens'},{key:'conversations',label:'Convos'},{key:'outcomes',label:'Outcomes'},{key:'_rate',label:'Rate',fn:d=>{const r=pct(v(d.outcomes),v(d.conversations)); return r!=null?r+'%':'—';}},{key:'sermon_clicks',label:'Sermons'},{key:'life_groups',label:'Groups'},{key:'give',label:'Give'},{key:'events',label:'Events'},{key:'notes',label:'Notes'}];
-  const el = document.getElementById('data-table');
-  el.innerHTML = `<thead><tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead><tbody>${[...weeks].reverse().map(r=>`<tr>${cols.map(c=>{const val=c.fn?c.fn(r):(typeof r[c.key]==='number'?fmt(r[c.key]):(r[c.key]||'')); const cls=c.key==='notes'?` class="notes-cell" title="${(r[c.key]||'').replace(/"/g,'&quot;')}"`:c.key==='week_label'?` style="font-family:Inter,sans-serif;font-weight:600;color:var(--fg)"`:``; return `<td${cls}>${val}</td>`;}).join('')}</tr>`).join('')}</tbody>`;
+function renderChangelog(weeks){
+  const el=document.getElementById('changelog');el.innerHTML='';
+  const recent=[...weeks].reverse().slice(0,4);
+  el.innerHTML=recent.map(w=>`<div style="margin-bottom:12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs)"><div style="font-size:11px;color:var(--fg3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${w.week_label}</div><div style="font-size:13px;color:var(--fg2)">${w.notes||'<span style="color:var(--fg3);font-style:italic">No changes logged.</span>'}</div></div>`).join('');
 }
 
-// Save
+function renderTable(weeks){
+  const cols=[{key:'week_label',label:'Week'},{key:'visitors',label:'Visitors'},{key:'widget_opens',label:'Opens'},{key:'conversations',label:'Convos'},{key:'outcomes',label:'Outcomes'},{key:'_rate',label:'Rate',fn:d=>{const r=P(V(d.outcomes),V(d.conversations));return r!=null?r+'%':'—'}},{key:'_eq',label:'EQ',fn:d=>calcEQ(d)},{key:'sermon_clicks',label:'Sermons'},{key:'life_groups',label:'Groups'},{key:'give',label:'Give'},{key:'events',label:'Events'},{key:'notes',label:'Notes'}];
+  const el=document.getElementById('data-table');
+  el.innerHTML=`<thead><tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead><tbody>${[...weeks].reverse().map(r=>`<tr>${cols.map(c=>{const val=c.fn?c.fn(r):(typeof r[c.key]==='number'?F(r[c.key]):(r[c.key]||''));const cls=c.key==='notes'?` class="notes-cell" title="${(r[c.key]||'').replace(/"/g,'&quot;')}"`:c.key==='week_label'?` style="font-family:Inter,sans-serif;font-weight:600;color:var(--fg)"`:``; return`<td${cls}>${val}</td>`;}).join('')}</tr>`).join('')}</tbody>`;
+}
+
+// SAVE
 document.getElementById('save-btn').addEventListener('click',()=>{
-  const week = document.getElementById('f-week').value;
-  const msg = document.getElementById('save-msg');
+  const week=document.getElementById('f-week').value;const msg=document.getElementById('save-msg');
   if(!week){msg.textContent='Pick a week start date.';return;}
-  const row = {week, week_label:document.getElementById('f-label').value||week, visitors:v(document.getElementById('f-visitors').value), widget_opens:v(document.getElementById('f-widget').value), conversations:v(document.getElementById('f-convos').value), outcomes:v(document.getElementById('f-outcomes').value), sermon_clicks:v(document.getElementById('f-sermons').value), sermon_topics:v(document.getElementById('f-stopics').value), life_groups:v(document.getElementById('f-life').value), give:v(document.getElementById('f-give').value), events:v(document.getElementById('f-events').value), visit_planning:v(document.getElementById('f-visit').value), event_info:v(document.getElementById('f-eventinfo').value), service_time:v(document.getElementById('f-service').value), group_ministry:v(document.getElementById('f-group').value), staff_contact:v(document.getElementById('f-staff').value), child_attendance:v(document.getElementById('f-child').value), helpful_answered:v(document.getElementById('f-helpful-ans').value), helpful_asked:v(document.getElementById('f-helpful-ask').value), notes:document.getElementById('f-notes').value||null};
-  const weeks = loadWeeks().filter(w=>w.week!==week);
-  weeks.push(row); saveWeeks(weeks);
-  msg.textContent='Saved!';
-  document.querySelectorAll('.field input, .field textarea').forEach(f=>f.value='');
-  setTimeout(()=>{msg.textContent='';},3000);
-  render();
+  const row={week,week_label:document.getElementById('f-label').value||week,visitors:V(document.getElementById('f-visitors').value),widget_opens:V(document.getElementById('f-widget').value),convos_started:V(document.getElementById('f-started').value),conversations:V(document.getElementById('f-convos').value),outcomes:V(document.getElementById('f-outcomes').value),sermon_clicks:V(document.getElementById('f-sermons').value),sermon_topics:V(document.getElementById('f-stopics').value),life_groups:V(document.getElementById('f-life').value),give:V(document.getElementById('f-give').value),events:V(document.getElementById('f-events').value),visit_planning:V(document.getElementById('f-visit').value),event_info:V(document.getElementById('f-eventinfo').value),service_time:V(document.getElementById('f-service').value),group_ministry:V(document.getElementById('f-group').value),staff_contact:V(document.getElementById('f-staff').value),child_attendance:V(document.getElementById('f-child').value),helpful_answered:V(document.getElementById('f-ha').value),helpful_asked:V(document.getElementById('f-hq').value),eval_sermon_pass:V(document.getElementById('f-eval1-pass').value),eval_sermon_fail:V(document.getElementById('f-eval1-fail').value),notes:document.getElementById('f-notes').value||null};
+  const weeks=load().filter(w=>w.week!==week);weeks.push(row);save(weeks);
+  msg.textContent='Saved!';document.querySelectorAll('.field input,.field textarea').forEach(f=>f.value='');
+  setTimeout(()=>{msg.textContent=''},3000);render();
 });
 
-render();
-window.addEventListener('resize', render);
+render();window.addEventListener('resize',render);
 </script>
 </body>
 </html>
